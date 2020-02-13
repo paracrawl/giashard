@@ -9,14 +9,14 @@ import (
 )
 
 var outdir string
-var shards int64
+var shards int
 var batchsize int64
 
 var schema = []string{"url", "mime", "plain_text"}
 
 func init() {
 	flag.StringVar(&outdir, "o", ".", "Output location")
-	flag.Int64Var(&shards, "n", 8, "Number of shards (2^n)")
+	flag.IntVar(&shards, "n", 8, "Number of shards (2^n)")
 	flag.Int64Var(&batchsize, "b", 100, "Batch size in MB")
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "Usage: %s [flags] input directories\n", os.Args[0])

@@ -12,7 +12,7 @@ import (
 
 type Shard struct {
 	dir string       // root directory
-	n int64          // number of shards (2^n)
+	n int            // number of shards (2^n)
 	size int64       // batch size
 	key  string      // key to use for sharding
 	cols []string    // columns
@@ -22,7 +22,7 @@ type Shard struct {
 // disperse records over 2^n shards using key, with batch sizes of size
 // this uses the idea of "domain" from publicsuffix, which tries to get the
 // most "significant" part of a domain name, stripping prefixes and suffixes
-func NewShard(dir string, n int64, size int64, key string, cols ...string) (s *Shard, err error) {
+func NewShard(dir string, n int, size int64, key string, cols ...string) (s *Shard, err error) {
 	batches := make([]*Batch, 1 << n)
 	s = &Shard{dir, n, size, key, cols, batches}
 	return
