@@ -40,9 +40,7 @@ func (s *Shard)Close() (err error) {
 	return
 }
 
-func ShardId(key string, n uint) (shard uint64, err error) {
-	hash := fnv.New64()
-
+func Slug(key string) (slug string, err error) {
 	// parse the url to get the domain name
 	url, e := url.Parse(key)
 	var host string
@@ -57,16 +55,25 @@ func ShardId(key string, n uint) (shard uint64, err error) {
 
 	// parse the domain name to get the slug
 	dn, err := publicsuffix.Parse(host)
-	var sld string
 	if err != nil {
 		// again, if we can't parse it, just keep the whole URL
-		sld = host
+		slug = host
 	} else {
-		sld = dn.SLD
+		slug = dn.SLD
+	}
+	return
+}
+
+func ShardId(key string, n uint) (shard uint64, err error) {
+	hash := fnv.New64()
+
+	slug, err := Slug(key)
+	if err != nil {
+		return
 	}
 
 	// use the slug to compute the hash
-	_, err = hash.Write([]byte(sld))
+	_, err = hash.Write([]byte(slug))
 	if err != nil {
 		return
 	}
