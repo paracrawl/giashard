@@ -40,6 +40,11 @@ func main() {
 	}
 	defer w.Close()
 
+	hostname, err := os.Hostname()
+	if err != nil {
+		log.Fatalf("Error getting local hostname: %v", err)
+	}
+
 	for i:=0; i<flag.NArg(); i++ {
 		source := flag.Arg(i)
 
@@ -48,8 +53,10 @@ func main() {
 			log.Fatalf("Error opening input reader: %v", err)
 		}
 
+		// provenance data - where is this from
+		provdata := []byte(fmt.Sprintf("%s:%s", hostname, source))
 		for row := range r.Rows() {
-			row["source"] = []byte(source)
+			row["source"] = provdata
 			if err := w.WriteRow(row); err != nil {
 				log.Fatalf("Error writing row: %v", err)
 			}
