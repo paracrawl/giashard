@@ -40,15 +40,16 @@ func (s *Shard)Close() (err error) {
 	return
 }
 
-func (s *Shard)WriteRow(row map[string][]byte) (err error) {
+func ShardId(key string, n uint) (shard uint64, err error) {
 	hash := fnv.New64()
-	key  := row[s.key]
 
 	// parse the url to get the domain name
-	url, e := url.Parse(string(key))
+	url, e := url.Parse(key)
 	var host string
 	if e != nil {
 		// if we can't parse it, just keep the whole URL
+		host = string(key)
+	} else if len(url.Host) == 0 {
 		host = string(key)
 	} else {
 		host = url.Host
@@ -70,7 +71,17 @@ func (s *Shard)WriteRow(row map[string][]byte) (err error) {
 		return
 	}
 
-	shard := hash.Sum64() % (1 << s.n)
+	shard = hash.Sum64() % (1 << n)
+	return
+}
+
+func (s *Shard)WriteRow(row map[string][]byte) (err error) {
+	key  := row[s.key]
+
+	shard, err := ShardId(string(key), s.n)
+	if err != nil {
+		return
+	}
 
 	if s.batches[shard] == nil {
 		b, err := s.openShard(shard)
