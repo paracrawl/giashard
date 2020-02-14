@@ -34,7 +34,7 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	flag.Parse()
 
-	w, err := giashard.NewShard(outdir, shards, batchsize * 1024 * 1024, "url", schema...)
+	w, err := giashard.NewShard(outdir, shards, batchsize * 1024 * 1024, "url", append(schema, "source")...)
 	if err != nil {
 		log.Fatalf("Error opening output shards: %v", err)
 	}
@@ -49,6 +49,7 @@ func main() {
 		}
 
 		for row := range r.Rows() {
+			row["source"] = []byte(source)
 			if err := w.WriteRow(row); err != nil {
 				log.Fatalf("Error writing row: %v", err)
 			}
