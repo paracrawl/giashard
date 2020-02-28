@@ -25,7 +25,7 @@ type Shard struct {
 
 var host_re *regexp.Regexp
 func init() {
-	host_re = regexp.MustCompile(`^([a-zA-Z0-9][a-zA-Z0-9.]*[a-zA-Z0-9]).*`)
+	host_re = regexp.MustCompile(`^([a-zA-Z0-9][a-zA-Z0-9\-.]*[a-zA-Z0-9]).*`)
 }
 
 // disperse records over 2^n shards using key, with batch sizes of size
