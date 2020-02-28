@@ -50,7 +50,8 @@ func main() {
 
 		r, err := giashard.NewColumnReader(source, schema...)
 		if err != nil {
-			log.Fatalf("Error opening input reader: %v", err)
+			log.Errorf("Error opening input reader: %v", err)
+			continue
 		}
 
 		// provenance data - where is this from
