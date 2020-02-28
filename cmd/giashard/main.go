@@ -50,7 +50,7 @@ func main() {
 
 		r, err := giashard.NewColumnReader(source, schema...)
 		if err != nil {
-			log.Errorf("Error opening input reader: %v", err)
+			log.Printf("Error opening input reader: %v", err)
 			continue
 		}
 
