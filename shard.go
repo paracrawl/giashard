@@ -57,8 +57,10 @@ func (se *ShardErr) Unwrap() (err error) {
 }
 
 var host_re *regexp.Regexp
+var path_re *regexp.Regexp
 func init() {
 	host_re = regexp.MustCompile(`^([a-zA-Z0-9][a-zA-Z0-9\-.]*[a-zA-Z0-9]).*`)
+	path_re = regexp.MustCompile(`^([^/]+).*`)
 	ShardError = NewShardErr("Unspecified error", nil)
 }
 
@@ -102,7 +104,13 @@ func Slug(key string) (slug string, err error) {
 	// parse the domain name to get the slug
 	dn, err := publicsuffix.Parse(host)
 	if err != nil {
-		err = NewShardErr(fmt.Sprintf("Unable to determine slug by parsing %v from %v", host, key), err)
+		// last ditch effort to get something reasonable out of the key
+		ms := path_re.FindStringSubmatch(key)
+		if len(ms) != 2 || len(ms[1]) == 0 {
+			err = NewShardErr(fmt.Sprintf("Unable to determine slug by parsing %v from %v", host, key), err)
+		}
+		slug = ms[1]
+		err = nil
 	} else {
 		slug = dn.SLD
 	}

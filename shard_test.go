@@ -6,7 +6,7 @@ import (
 )
 
 type testcase struct{ url string; n uint; slug string; shard uint64 }
-var testcases [7]testcase = [...]testcase{
+var testcases [9]testcase = [...]testcase{
 	// https://github.com/paracrawl/giashard/issues/1
 	{"http://www.reddit.com/", 8, "reddit", 249},
 	{"http://www.reddit.com/.", 8, "reddit", 249},
@@ -15,6 +15,8 @@ var testcases [7]testcase = [...]testcase{
 	{"www.reddit.com/.", 8, "reddit", 249},
 	{"www.reddit.com.", 8, "reddit", 249},
 	{"tulas-handy-charts.de/en/index.html", 8, "tulas-handy-charts", 179},
+	{"localhost/ford_a/ford_a_restore_2013_02.html", 8, "localhost", 24},
+	{"localhost", 8, "localhost", 24},
 }
 
 func TestSlug(t *testing.T) {
