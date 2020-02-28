@@ -62,6 +62,7 @@ func main() {
 			row["source"] = provdata
 			if err := w.WriteRow(row); err != nil {
 				if errors.Is(err, giashard.ShardError) { // not fatal
+					log.Print(err)
 					continue
 				}
 				log.Fatalf("Error writing row: %v", err)
