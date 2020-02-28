@@ -5,10 +5,11 @@ import (
 )
 
 type testcase struct{ url string; n uint; slug string; shard uint64 }
-var testcases [5]testcase = [...]testcase{
+var testcases [6]testcase = [...]testcase{
 	// https://github.com/paracrawl/giashard/issues/1
 	{"http://www.reddit.com/", 8, "reddit", 249},
 	{"http://www.reddit.com/.", 8, "reddit", 249},
+	{"http://www.reddit.com./", 8, "reddit", 249},
 	{"http://www.reddit.com.", 8, "reddit", 249},
 	{"www.reddit.com/.", 8, "reddit", 249},
 	{"www.reddit.com.", 8, "reddit", 249},

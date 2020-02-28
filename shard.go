@@ -1,12 +1,16 @@
 package giashard
 
 import (
+	"errors"
+	"fmt"
 	"hash/fnv"
 	"log"
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
+	"strings"
 	"github.com/weppos/publicsuffix-go/publicsuffix"
 )
 
@@ -17,6 +21,11 @@ type Shard struct {
 	key  string      // key to use for sharding
 	cols []string    // columns
 	batches []*Batch
+}
+
+var host_re *regexp.Regexp
+func init() {
+	host_re = regexp.MustCompile(`^([a-zA-Z0-9][a-zA-Z0-9.]*[a-zA-Z0-9]).*`)
 }
 
 // disperse records over 2^n shards using key, with batch sizes of size
@@ -44,13 +53,16 @@ func Slug(key string) (slug string, err error) {
 	// parse the url to get the domain name
 	url, e := url.Parse(key)
 	var host string
-	if e != nil {
-		// if we can't parse it, just keep the whole URL
-		host = string(key)
-	} else if len(url.Host) == 0 {
-		host = string(key)
+	if e != nil || len(url.Host) == 0 {
+		// if we can't parse it, try to extract something sensible using a regexp
+		ms := host_re.FindStringSubmatch(key)
+		if len(ms) != 2 {
+			err = errors.New(fmt.Sprintf("Unable to determine host using regexp from %v", key))
+			return
+		}
+		host = ms[1]
 	} else {
-		host = url.Host
+		host = strings.TrimRight(url.Host, ".") // a trailing . will confuse publicsuffix
 	}
 
 	// parse the domain name to get the slug
