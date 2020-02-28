@@ -1,7 +1,6 @@
 package giashard
 
 import (
-	"errors"
 	"fmt"
 	"hash/fnv"
 	"log"
@@ -23,9 +22,44 @@ type Shard struct {
 	batches []*Batch
 }
 
+// we need a specific error type to distinguish from cases where we
+// just can't figure out what the shard should be because of bad
+// input (which could reasonably be skipped or sent to an explicit
+// "corrupted" shard) from errors writing to output which should
+// generally be fatal
+type ShardErr struct {
+	s string
+	e error
+}
+
+var ShardError *ShardErr
+
+func NewShardErr(s string, e error) *ShardErr {
+	return &ShardErr{s, e}
+}
+
+func (se *ShardErr) Error() (errs string) {
+	if se.e == nil {
+		errs = se.s
+	} else {
+		errs = fmt.Sprintf("%s: %v", se.s, se.e)
+	}
+	return
+}
+
+func (se *ShardErr) Is(target error) bool {
+	_, ok := target.(*ShardErr)
+	return ok
+}
+
+func (se *ShardErr) Unwrap() (err error) {
+	return se.e
+}
+
 var host_re *regexp.Regexp
 func init() {
 	host_re = regexp.MustCompile(`^([a-zA-Z0-9][a-zA-Z0-9\-.]*[a-zA-Z0-9]).*`)
+	ShardError = NewShardErr("Unspecified error", nil)
 }
 
 // disperse records over 2^n shards using key, with batch sizes of size
@@ -57,7 +91,7 @@ func Slug(key string) (slug string, err error) {
 		// if we can't parse it, try to extract something sensible using a regexp
 		ms := host_re.FindStringSubmatch(key)
 		if len(ms) != 2 {
-			err = errors.New(fmt.Sprintf("Unable to determine host using regexp from %v", key))
+			err = NewShardErr(fmt.Sprintf("Unable to determine host using regexp from %v", key), e)
 			return
 		}
 		host = ms[1]
@@ -68,8 +102,7 @@ func Slug(key string) (slug string, err error) {
 	// parse the domain name to get the slug
 	dn, err := publicsuffix.Parse(host)
 	if err != nil {
-		// again, if we can't parse it, just keep the whole URL
-		slug = host
+		err = NewShardErr(fmt.Sprintf("Unable to determine slug by parsing %v from %v", host, key), err)
 	} else {
 		slug = dn.SLD
 	}
@@ -94,6 +127,11 @@ func ShardId(key string, n uint) (shard uint64, err error) {
 	return
 }
 
+// This returns an error of ShardErr kind if the error relates to
+// figuring out what shard the data should be in. Generally this should
+// not be fatal: no writing will have happened and it is safe to just
+// skip to the next row. If a different kind of error is returned, it
+// relates to writing the output and should be considered fatal.
 func (s *Shard)WriteRow(row map[string][]byte) (err error) {
 	key  := row[s.key]
 

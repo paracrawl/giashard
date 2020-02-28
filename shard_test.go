@@ -1,6 +1,7 @@
 package giashard
 
 import (
+	"errors"
 	"testing"
 )
 
@@ -35,5 +36,15 @@ func TestShardId(t *testing.T) {
 		} else if shard != tcase.shard {
 			t.Errorf("ShardId(%v, %v): got %d expected %d", tcase.url, tcase.n, shard, tcase.shard)
 		}
+	}
+}
+
+func TestError(t *testing.T) {
+	e := NewShardErr("test", nil)
+	if !errors.Is(e, ShardError) {
+		t.Errorf("Cannot identify ShardErr")
+	}
+	if errors.Is(e, errors.New("generic error")) {
+		t.Errorf("ShardErr mistakenly identified as generic error")
 	}
 }

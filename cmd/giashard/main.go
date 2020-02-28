@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -48,6 +49,7 @@ func main() {
 	for i:=0; i<flag.NArg(); i++ {
 		source := flag.Arg(i)
 
+		log.Printf("Processing input: %v", source)
 		r, err := giashard.NewColumnReader(source, schema...)
 		if err != nil {
 			log.Printf("Error opening input reader: %v", err)
@@ -59,6 +61,9 @@ func main() {
 		for row := range r.Rows() {
 			row["source"] = provdata
 			if err := w.WriteRow(row); err != nil {
+				if errors.Is(err, giashard.ShardError) { // not fatal
+					continue
+				}
 				log.Fatalf("Error writing row: %v", err)
 			}
 		}
