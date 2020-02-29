@@ -12,6 +12,7 @@ import (
 type LineReader struct {
 	f io.ReadCloser
 	z io.ReadCloser
+	fatal bool
 }
 
 // return an object that will read lines out of the gzip compressed file
@@ -26,8 +27,13 @@ func NewLineReader(filename string) (r *LineReader, err error) {
 		return
 	}
 
-	r = &LineReader{f, z}
+	r = &LineReader{f, z, true}
 	return
+}
+
+// should read errors be fatal (and abort the program with log.Fatalf)
+func (r *LineReader)Fatal(flag bool) {
+	r.fatal = flag
 }
 
 // close the underlying files, of course
@@ -61,7 +67,11 @@ func (r *LineReader)Lines() (ch chan []byte) {
 						ch <- item
 					}
 				} else {
-					log.Fatalf("error reading column: %v", err)
+					if r.fatal {
+						log.Fatalf("error reading column: %v", err)
+					} else {
+						log.Printf("error reading column: %v", err)
+					}
 				}
 				close(ch)
 				return

@@ -43,6 +43,8 @@ func (s *ShardStats)openfile(fname string) (ch chan []byte, err error) {
 		return
 	}
 
+	r.Fatal(false)
+	
 	ch = make(chan []byte)
 	go func() {
 		for doc := range r.Lines() {
