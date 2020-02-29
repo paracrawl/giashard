@@ -78,9 +78,9 @@ bytes:
 	// 4. check counts of lines match
 	if ! english {
 		nsents, nsok := stats.Native.Lines["sentences.gz"]
-		esents, esok := stats.English.Lines["sentences_en.gz"]
-		etoks, etok  := stats.English.Lines["tokenised_en.gz"]
-		if !nsok || !esok || !etok {
+		esents, _    := stats.English.Lines["sentences_en.gz"]
+		etoks, _     := stats.English.Lines["tokenised_en.gz"]
+		if !nsok {
 			health["sentence_count"] = HealthTest{"Sentence count missing", false}
 		} else {
 			health["sentence_count"] = HealthTest{"Sentence count exists", true}
@@ -99,12 +99,13 @@ bytes:
 		}
 	} else {
 		nsents, nsok := stats.Native.Lines["sentences.gz"]
-		etoks, etok  := stats.English.Lines["tokenised.gz"]
-		if !nsok || !etok {
+		etoks, _     := stats.English.Lines["tokenised.gz"]
+		if !nsok {
 			health["sentence_count"] = HealthTest{"Sentence count missing", false}
 		} else {
 			health["sentence_count"] = HealthTest{"Sentence count exists", true}
 		}
+		health["translation_count"] = HealthTest{"Translation from english to english unnecessary", true}
 		if nsents > 0 && nsents == etoks {
 			health["tokenised_count"] = HealthTest{"Tokenised english count matches", true}
 		} else {
