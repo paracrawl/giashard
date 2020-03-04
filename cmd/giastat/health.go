@@ -99,7 +99,7 @@ bytes:
 		}
 	} else {
 		nsents, nsok := stats.Native.Lines["sentences.gz"]
-		etoks, _     := stats.English.Lines["tokenised.gz"]
+		etoks, _     := stats.Native.Lines["tokenised.gz"]
 		if !nsok {
 			health["sentence_count"] = HealthTest{"Sentence count missing", false}
 		} else {
