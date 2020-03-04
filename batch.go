@@ -42,7 +42,7 @@ func NewBatch(dir string, size int64, cols ...string) (b *Batch, err error) {
 	b = &Batch{dir, size, 0, w}
 */
 
-	batchno, err := maxbatch(dir)
+	batchno, err := Maxbatch(dir)
 	if err != nil {
 		return
 	}
@@ -118,7 +118,7 @@ func (b *Batch)openBatch() (err error) {
 	if err != nil {
 		return
 	}
-	count, err := batchsize(bdir, b.cols...)
+	count, err := Batchsize(bdir, b.cols...)
 	if err != nil {
 		return
 	}
@@ -129,7 +129,7 @@ func (b *Batch)openBatch() (err error) {
 
 // find the end of the current batch. this means walking directory to find
 // the numerically greatest
-func maxbatch(dir string) (batchno int, err error) {
+func Maxbatch(dir string) (batchno int, err error) {
 	f, err := os.Open(dir)
 	if err != nil {
 		return
@@ -161,7 +161,7 @@ func maxbatch(dir string) (batchno int, err error) {
 }
 
 // estimate the size of the current batch from the current columns
-func batchsize(dir string, cols ...string) (size int64, err error) {
+func Batchsize(dir string, cols ...string) (size int64, err error) {
 	// find the maximum filesize of compressed files
 	for _, c := range cols {
 		colpath := filepath.Join(dir, c + ".gz")
@@ -187,3 +187,5 @@ func batchsize(dir string, cols ...string) (size int64, err error) {
 	size = size * 3
 	return
 }
+
+
