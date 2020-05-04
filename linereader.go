@@ -3,6 +3,7 @@ package giashard
 import (
 	"bufio"
 	"compress/gzip"
+	"errors"
 	"io"
 	"log"
 	"os"
@@ -67,7 +68,12 @@ func (r *LineReader)Lines() (ch chan []byte) {
 						ch <- item
 					}
 				} else {
-					if r.fatal {
+					var perr *os.PathError
+					if errors.As(err, &perr) && perr.Err.Error() == "file already closed" {
+						// Ignore weird edge case we're we are closing ColReader
+						// so quickly we haven't had the time to encounter EOF
+						// in this LineReader yet.
+					} else if r.fatal {
 						log.Fatalf("error reading column: %v", err)
 					} else {
 						log.Printf("error reading column: %v", err)
