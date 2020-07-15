@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"strings"
 	"flag"
 	"fmt"
 	"log"
@@ -12,11 +13,13 @@ import (
 var outdir string
 var shards uint
 var batchsize int64
+var fileslist string
 
 var schema = []string{"url", "mime", "plain_text"}
 
 func init() {
 	flag.StringVar(&outdir, "o", ".", "Output location")
+	flag.StringVar(&fileslist, "f", "plain_text,url,mime", "Files to shard, separated by commas")
 	flag.UintVar(&shards, "n", 8, "Number of shards (2^n)")
 	flag.Int64Var(&batchsize, "b", 100, "Batch size in MB")
 	flag.Usage = func() {
@@ -34,6 +37,7 @@ significant part of the hostname in a url and batch is approximately fixed size.
 func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	flag.Parse()
+	schema = strings.Split(fileslist, ",")
 
 	w, err := giashard.NewShard(outdir, shards, batchsize * 1024 * 1024, "url", append(schema, "source")...)
 	if err != nil {
