@@ -8,17 +8,18 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"github.com/paracrawl/giashard"
 )
 
 var outdir string
 var shards uint
 var batchsize int64
-
-var schema = []string{"url", "mime", "plain_text", "source"}
+var fileslist string
 
 func init() {
 	flag.StringVar(&outdir, "o", ".", "Output location")
+	flag.StringVar(&fileslist, "f", "plain_text,url,mime,source", "Files to shard, separated by commas")
 	flag.UintVar(&shards, "n", 8, "Number of shards (2^n)")
 	flag.Int64Var(&batchsize, "b", 100, "Batch size in MB")
 	flag.Usage = func() {
@@ -31,6 +32,8 @@ func init() {
 func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	flag.Parse()
+
+	schema := strings.Split(fileslist, ",")
 
 	maxsize := batchsize * 1024 * 1024
 
