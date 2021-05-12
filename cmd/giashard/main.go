@@ -14,6 +14,7 @@ var outdir string
 var shards uint
 var batchsize int64
 var fileslist string
+var domainList string
 
 var schema = []string{"url", "mime", "plain_text"}
 
@@ -22,6 +23,7 @@ func init() {
 	flag.StringVar(&fileslist, "f", "plain_text,url,mime", "Files to shard, separated by commas")
 	flag.UintVar(&shards, "n", 8, "Number of shards (2^n)")
 	flag.Int64Var(&batchsize, "b", 100, "Batch size in MB")
+	flag.StringVar(&domainList, "d", "", "Additional public suffix entries")
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "Usage: %s [flags] input directories\n", os.Args[0])
 		flag.PrintDefaults()
@@ -38,6 +40,15 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	flag.Parse()
 	schema = strings.Split(fileslist, ",")
+
+	if domainList != "" {
+		count, err := giashard.AddRulesToDefaultList(domainList)
+		if err != nil {
+			log.Fatalf("Error loading domain list: %v", err)
+		} else {
+			log.Printf("Loaded %d additional public suffix domains.", count)
+		}
+	}
 
 	w, err := giashard.NewShard(outdir, shards, batchsize * 1024 * 1024, "url", append(schema, "source")...)
 	if err != nil {

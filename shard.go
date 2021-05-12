@@ -85,6 +85,11 @@ func (s *Shard)Close() (err error) {
 	return
 }
 
+func AddRulesToDefaultList(domainList string) (added int, err error) {
+	rules, err := publicsuffix.DefaultList.LoadFile(domainList, nil)
+	return len(rules), err
+}
+
 func Slug(key string) (slug string, err error) {
 	// parse the url to get the domain name
 	url, e := url.Parse(key)

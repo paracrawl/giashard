@@ -11,10 +11,12 @@ import (
 
 var shards uint
 var slugs bool
+var domainList string
 
 func init() {
 	flag.UintVar(&shards, "n", 8, "Number of shards (2^n)")
 	flag.BoolVar(&slugs, "s", false, "Print slugs instead of shards")
+	flag.StringVar(&domainList, "d", "", "Additional public suffix entries")
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "Usage: %s [flags] [url]\n", os.Args[0])
 		flag.PrintDefaults()
@@ -47,6 +49,14 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	flag.Parse()
 
+	if domainList != "" {
+		count, err := giashard.AddRulesToDefaultList(domainList)
+		if err != nil {
+			log.Fatalf("Error loading domain list: %v", err)
+		} else {
+			log.Printf("Loaded %d additional public suffix domains.", count)
+		}
+	}
 
 	for url := range urls() {
 		if slugs {
