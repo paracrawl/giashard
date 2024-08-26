@@ -62,7 +62,7 @@ func (r *JsonlReader) Records() (ch chan JsonlRecord) {
 			var record JsonlRecord
 			if err := decoder.Decode(&record); err != nil {
 				if r.fatal {
-					log.Fatal("error decoding record: %v", err)
+					log.Fatalf("Error decoding record: %v", err)
 				} else {
 					log.Printf("Error decoding record: %v", err)
 				}
@@ -72,12 +72,11 @@ func (r *JsonlReader) Records() (ch chan JsonlRecord) {
 			}
 		}
 		close(ch)
-		return
 	}()
 	return
 }
 
-// output: a channel containing map {output_col_names: lines}
+// output: a channel containing map {outputColumnNames: lines}
 func (r *JsonlReader) Rows() (ch chan map[string][]byte) {
 	ch = make(chan map[string][]byte)
 	src := r.Records()

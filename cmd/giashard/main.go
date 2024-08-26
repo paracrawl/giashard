@@ -5,25 +5,23 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/paracrawl/giashard"
 	"log"
 	"os"
-	"strings"
+
+	"github.com/paracrawl/giashard"
 )
 
+// init cmd line vars
 var outdir string
-var dirslist string
+var inputslist string
 var shards uint
 var batchsize int64
-var fileslist string
 var domainList string
-
-var schema = []string{"url", "mime", "plain_text"}
+var outfiles = []string{"url", "text", "source"} // replacement for `schema`
 
 func init() {
 	flag.StringVar(&outdir, "o", ".", "Output location")
-	flag.StringVar(&dirslist, "l", "", "Input file listing all input directories")
-	flag.StringVar(&fileslist, "f", "plain_text,url,mime", "Files to shard, separated by commas")
+	flag.StringVar(&inputslist, "l", "", "Input file listing all JSONL files to shard")
 	flag.UintVar(&shards, "n", 8, "Number of shards (2^n)")
 	flag.Int64Var(&batchsize, "b", 100, "Batch size in MB")
 	flag.StringVar(&domainList, "d", "", "Additional public suffix entries")
@@ -34,10 +32,11 @@ func init() {
 		}
 		flag.PrintDefaults()
 		_, err = fmt.Fprintf(flag.CommandLine.Output(),
-			`Shards together the directories given on input. They are assumed to be in the
-standard Paracrawl column storage format. The output is a tree of directories
-of the form: outdir/shard/batch where shard is computed as a hash of the
-significant part of the hostname in a url and batch is approximately fixed size.
+			`Shards together the files given on input. They are assumed to be in JSONL format with 
+			the data to shard given the names "url" and "text" in each record. 
+			The output is a tree of directories of the form: outdir/shard/batch where shard is 
+			computed as a hash of the significant part of the hostname in a url and batch is 
+			approximately fixed size.
 `)
 		if err != nil {
 			return
@@ -45,15 +44,14 @@ significant part of the hostname in a url and batch is approximately fixed size.
 	}
 }
 
-func processfile(source string, schema []string, w *giashard.Shard, hostname string) {
+func processfile(source string, w *giashard.Shard, hostname string) {
 	log.Printf("Processing input: %v", source)
-	r, err := giashard.NewColumnReader(source, schema...)
+	r, err := giashard.NewJsonlReader(source)
 	if err != nil {
 		log.Printf("Error opening input reader: %v", err)
 		return
 	}
-
-	// provenance data - where is this from
+	// Provenance data tells us origin of a particular output.
 	provdata := []byte(fmt.Sprintf("%s:%s", hostname, source))
 	for row := range r.Rows() {
 		row["source"] = provdata
@@ -68,14 +66,16 @@ func processfile(source string, schema []string, w *giashard.Shard, hostname str
 
 	err = r.Close()
 	if err != nil {
+		log.Printf("Error closing reader: %v", err)
 		return
 	}
 }
+
 func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	flag.Parse()
-	schema = strings.Split(fileslist, ",")
 
+	// these are extra top-level domains to pick up e.g. '.com', '.co.uk'
 	if domainList != "" {
 		count, err := giashard.AddRulesToDefaultList(domainList)
 		if err != nil {
@@ -85,7 +85,7 @@ func main() {
 		}
 	}
 
-	w, err := giashard.NewShard(outdir, shards, batchsize*1024*1024, "url", append(schema, "source")...)
+	w, err := giashard.NewShard(outdir, shards, batchsize*1024*1024, "url", outfiles...)
 	if err != nil {
 		log.Fatalf("Error opening output shards: %v", err)
 	}
@@ -96,18 +96,20 @@ func main() {
 		}
 	}(w)
 
-	hostname, err := os.Hostname()
+	hostname, err := os.Hostname() // returns hostname reported by the kernel
 	if err != nil {
 		log.Fatalf("Error getting local hostname: %v", err)
 	}
 
+	// read in inputs from command line
 	for i := 0; i < flag.NArg(); i++ {
 		source := flag.Arg(i)
-		processfile(source, schema, w, hostname)
+		processfile(source, w, hostname)
 	}
 
-	if dirslist != "" {
-		file, err := os.Open(dirslist)
+	// read in inputs from text file if specified
+	if inputslist != "" {
+		file, err := os.Open(inputslist)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -121,7 +123,7 @@ func main() {
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
 			source := scanner.Text()
-			processfile(source, schema, w, hostname)
+			processfile(source, w, hostname)
 		}
 
 		if err := scanner.Err(); err != nil {
