@@ -1,6 +1,7 @@
 package giashard
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"io"
 	"log"
@@ -88,8 +89,14 @@ func (r *JsonlReader) Rows() (ch chan map[string][]byte) {
 				close(ch)
 				return
 			}
+
+			// we base64 encode to match Paracrawl format
+			b := []byte(v.Text)
+			enc := make([]byte, base64.StdEncoding.EncodedLen((len(b))))
+			base64.StdEncoding.Encode(enc, b)
+
 			m["url"] = []byte(v.Url)
-			m["text"] = []byte(v.Text)
+			m["text"] = enc
 			ch <- m
 		}
 	}()
