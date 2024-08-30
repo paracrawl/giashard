@@ -1,12 +1,40 @@
-## Sharding for Web-Scale Parallel Text Mining
+# `giashard`: Sharding for Web-Scale Parallel Text Mining
 
-`giashard` is a tool for batching webcrawled data for later processing. As input, it takes a list of files in JSONL format where the source URL of each record has the key `url` and the associated extracted text has the key `text`. Any other key-value pairs in each record are ignored. The program then sorts each record into a shard based on a hash of the URL. The output is a directory of these shards where each shard contains batches of roughly equal size.
+`giashard` is a tool for batching webcrawled data for later processing. It is designed as part of a corpus creation pipeline in projects like [Paracrawl](https://paracrawl.eu/) and [HPLT](https://hplt-project.org/). 
 
-Example use:
+## Installation
 
-`giashard -n 8 -b 1024 -o mlt_Latn_output/cc23 cc23/mlt_Latn/batch_1.jsonl.zst`
+`giashard` is written in Go. To install, you need to clone the repo and then build the application:
 
-This takes the Maltese data contained in the batch and spreads it over 2^8 shards (set by `-n`). Each of these shards will contain batches up to 1024MB each (set by `-b`). The numbered shard/batch directories are output to the directory `mlt_Latn_output/cc23` (set by `-o`). 
+```bash
+git clone https://github.com/paracrawl/giashard.git
+cd giashard/cmd/giashard
+go build
+```
+
+## Running `giashard`
+`giashard` can accept two input formats:
+1) A directory (or list of directories) in bitextor/Paracrawl column storage format: each directory contains three files named `url.gz`, `mime.gz` and `plain_text.gz` (by default). A different number of files and different names for these files can be specified with the `-f` flag
+2) A file (or list of files) in the JSONL format where each record contains at minimum one field named `u` containing a URL and one field named `text` containing the extracted content in plain text.
+
+`giashard` uses the following flags:
+- `-o`: Output directory location (default: current directory)
+- `-l`: Input file containing a list of files/directories to shard (default: "")
+- `-f`: Comma-separated list of files to shard for bitextor/Paracrawl column storage format input(default:`"url,mime,plaintext"`)
+- `-n`: Exponent to calculate number of shards (2^n) (default: 8)
+- `-b`: Batch size in MB (default: 100)
+- `-d`: Additional public suffix entries (default: "")
+- `-jsonl`: Boolean indicating data is in JSONL format (default: False)
+
+Example command:
+```bash
+ls -1d output_wide15_filtered/*/is | xargs giashard/cmd/giashard/giashard -n 8 -o output_wide15_sharded -f text,url -b 1024
+```
+
+This runs `giashard` on all Icelandic data in the `output_wide15_filtered` directory (in bitextor/Paracrawl column storage format) where each input directory contains two files: `text.gz` and `url.gz`. It sorts this data into 2^8 numbered shards where shard membership is assigned based on a hash of the URL. The data in each shard is split into numbered batches of approximately 1024MB. Output text is base64 encoded.
+
+
+## `giashardid`
 
 There is a companion tool called `giashardid` that you can give a URL to either on the command line or stdin, and it will print the shard id that that URL will get sorted to. If you give it the `-s` flag, instead of printing the shard id, it will print the slug derived from the hostname in the URL.
 
