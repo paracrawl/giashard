@@ -56,8 +56,7 @@ type Reader interface {
 	Close() error
 }
 
-func processfile(source string, schema []string, w *giashard.Shard, hostname string, isjsonl bool) {
-	log.Printf("Processing input: %v", source)
+func NewReader(source string, schema []string, isjsonl bool) (Reader, error) {
 	var r Reader
 	var err error
 
@@ -65,14 +64,29 @@ func processfile(source string, schema []string, w *giashard.Shard, hostname str
 		r, err = giashard.NewJsonlReader(source)
 		if err != nil {
 			log.Printf("Error opening input reader: %v", err)
-			return
+			return r, err
 		}
+		log.Println("Using JSONL reader")
 	} else {
 		r, err = giashard.NewColumnReader(source, schema...)
 		if err != nil {
 			log.Printf("Error opening input reader: %v", err)
-			return
+			return r, err
 		}
+		log.Println("Using Column reader")
+	}
+
+	return r, nil
+}
+
+func processfile(source string, schema []string, w *giashard.Shard, hostname string, isjsonl bool) {
+	log.Printf("Processing input: %v", source)
+	var r Reader
+	var err error
+
+	r, err = NewReader(source, schema, isjsonl)
+	if err != nil {
+		log.Fatal("Error creating Reader:", err)
 	}
 
 	// Provenance data tells us origin of a particular output.
