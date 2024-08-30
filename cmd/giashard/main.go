@@ -20,12 +20,12 @@ var fileslist string
 var domainList string
 var isjsonl bool
 
-var schema = []string{"url", "text"} // replacement for `schema`
+var schema = []string{"url", "mime", "plain_text"}
 
 func init() {
 	flag.StringVar(&outdir, "o", ".", "Output location")
 	flag.StringVar(&inputslist, "l", "", "Input file listing either directories/files to shard")
-	flag.StringVar(&fileslist, "f", "url,text", "Files to shard, separated by commas (ignored if JSONL)")
+	flag.StringVar(&fileslist, "f", "url,mime,plain_text", "Files to shard, separated by commas (ignored if JSONL)")
 	flag.UintVar(&shards, "n", 8, "Number of shards (2^n)")
 	flag.Int64Var(&batchsize, "b", 100, "Batch size in MB")
 	flag.StringVar(&domainList, "d", "", "Additional public suffix entries")
@@ -99,6 +99,9 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	flag.Parse()
 	schema = strings.Split(fileslist, ",")
+	if isjsonl {
+		schema = []string{"url", "text"} // need a fixed schema for jsonl
+	}
 
 	// these are extra top-level domains to pick up e.g. '.com', '.co.uk'
 	if domainList != "" {
@@ -110,7 +113,7 @@ func main() {
 		}
 	}
 
-	w, err := giashard.NewShard(outdir, shards, batchsize*1024*1024, "url", schema...)
+	w, err := giashard.NewShard(outdir, shards, batchsize*1024*1024, "url", append(schema, "source")...)
 	if err != nil {
 		log.Fatalf("Error opening output shards: %v", err)
 	}
