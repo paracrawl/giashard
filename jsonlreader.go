@@ -60,7 +60,7 @@ func (r *JsonlReader) Records() (ch chan JsonlRecord) {
 	decoder := json.NewDecoder(r.z)
 	go func() {
 		for decoder.More() {
-			var record JsonlRecord
+			var record JsonlRecord // alt: decode to map[string][]byte to include all records
 			if err := decoder.Decode(&record); err != nil {
 				if r.fatal {
 					log.Fatalf("Error decoding record: %v", err)

@@ -63,14 +63,12 @@ func NewReader(source string, schema []string, isjsonl bool) (Reader, error) {
 	if isjsonl {
 		r, err = giashard.NewJsonlReader(source)
 		if err != nil {
-			log.Printf("Error opening input reader: %v", err)
 			return r, err
 		}
 		log.Println("Using JSONL reader")
 	} else {
 		r, err = giashard.NewColumnReader(source, schema...)
 		if err != nil {
-			log.Printf("Error opening input reader: %v", err)
 			return r, err
 		}
 		log.Println("Using Column reader")
@@ -86,7 +84,7 @@ func processfile(source string, schema []string, w *giashard.Shard, hostname str
 
 	r, err = NewReader(source, schema, isjsonl)
 	if err != nil {
-		log.Fatal("Error creating Reader:", err)
+		log.Fatal("Error creating Reader:", err) // err not caught in func
 	}
 
 	// Provenance data tells us origin of a particular output.
