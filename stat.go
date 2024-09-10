@@ -1,8 +1,8 @@
 package giashard
 
 import (
-	"compress/gzip"
 	"bytes"
+	"compress/gzip"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -26,7 +26,7 @@ type ShardStats struct {
 	English LangStats        `json:"english"`
 }
 
-func (s *ShardStats)openfile(fname string) (ch chan []byte, err error) {
+func (s *ShardStats) openfile(fname string) (ch chan []byte, err error) {
 	s.Bytes[fname] = -1
 	s.Records[fname] = -1
 
@@ -44,7 +44,7 @@ func (s *ShardStats)openfile(fname string) (ch chan []byte, err error) {
 	}
 
 	r.Fatal(false)
-	
+
 	ch = make(chan []byte)
 	go func() {
 		for doc := range r.Lines() {
@@ -70,34 +70,34 @@ func getLines(doc []byte) (lines [][]byte, err error) {
 	return
 }
 
-func (ls LangStats)countLines(fname string, doc []byte) (lines [][]byte, err error) {
+func (ls LangStats) countLines(fname string, doc []byte) (lines [][]byte, err error) {
 	lines, err = getLines(doc)
 	if err != nil {
 		return
 	}
 
-	n, _ := ls.Lines[fname]
+	n := ls.Lines[fname]
 	ls.Lines[fname] = n + len(lines)
 
-	bucket := 5 * int(len(lines) / 5)
-	p, _ := ls.LinesPerDoc[bucket]
+	bucket := 5 * int(len(lines)/5)
+	p := ls.LinesPerDoc[bucket]
 	ls.LinesPerDoc[bucket] = p + 1
 
 	return
 }
 
-func (ls LangStats)countTokens(fname string, doc []byte) (lines [][]byte, err error) {
+func (ls LangStats) countTokens(fname string, doc []byte) (lines [][]byte, err error) {
 	lines, err = getLines(doc)
 	if err != nil {
 		return
 	}
 
-	n, _ := ls.Lines[fname]
+	n := ls.Lines[fname]
 	ls.Lines[fname] = n + len(lines)
 
 	for _, line := range lines {
 		toks := bytes.Split(line, []byte(" "))
-		n, _ := ls.TokensPerLine[len(toks)]
+		n := ls.TokensPerLine[len(toks)]
 		ls.TokensPerLine[len(toks)] = n + 1
 	}
 
@@ -147,31 +147,31 @@ func ReadStats(shard string) (stats *ShardStats, err error) {
 	return
 }
 
-func (s *ShardStats)Calc() {
+func (s *ShardStats) Calc() {
 	lines, err := s.openfile("mime.gz")
 	if err == nil {
-		for _ = range lines {
+		for range lines {
 			//
 		}
 	}
 
 	lines, err = s.openfile("source.gz")
 	if err == nil {
-		for _ = range lines {
+		for range lines {
 			//
 		}
 	}
 
 	lines, err = s.openfile("url.gz")
 	if err == nil {
-		for _ = range lines {
+		for range lines {
 			//
 		}
 	}
 
 	docs, err := s.openfile("plain_text.gz")
 	if err == nil {
-		for _ = range docs {
+		for range docs {
 			//
 		}
 	}
@@ -205,11 +205,11 @@ func (s *ShardStats)Calc() {
 	}
 }
 
-func (s *ShardStats)Marshal() (buf []byte, err error) {
+func (s *ShardStats) Marshal() (buf []byte, err error) {
 	return json.Marshal(s)
 }
 
-func (s *ShardStats)Write() (err error) {
+func (s *ShardStats) Write() (err error) {
 	buf, err := s.Marshal()
 	if err != nil {
 		return

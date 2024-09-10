@@ -92,6 +92,7 @@ func AddRulesToDefaultList(domainList string) (added int, err error) {
 	return len(rules), err
 }
 
+// pull out second-level domain (SLD) to calculate shard bucket number
 func Slug(key string) (slug string, err error) {
 	// parse the url to get the domain name
 	url, e := url.Parse(key)
@@ -119,13 +120,13 @@ func Slug(key string) (slug string, err error) {
 		slug = ms[1]
 		err = nil
 	} else {
-		slug = dn.SLD
+		slug = dn.SLD // second-level domain
 	}
 	return
 }
 
 func ShardId(key string, n uint) (shard uint64, err error) {
-	hash := fnv.New64()
+	hash := fnv.New64() // calculate new 64-bit hash
 
 	slug, err := Slug(key)
 	if err != nil {
