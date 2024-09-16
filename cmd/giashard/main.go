@@ -84,7 +84,7 @@ func processfile(source string, schema []string, w *giashard.Shard, hostname str
 
 	r, err = NewReader(source, schema, isjsonl)
 	if err != nil {
-		log.Fatal("Error creating Reader:", err) // err not caught in func
+		log.Fatalf("Error creating Reader: %v", err) // err not caught in func
 	}
 
 	// Provenance data tells us origin of a particular output.
@@ -141,11 +141,21 @@ func main() {
 		log.Fatalf("Error getting local hostname: %v", err)
 	}
 
-	// read in inputs from command line
+	// // read in from stdin if no files specified...
+	// if flag.NArg() < 1 {
+	// 	log.Printf("No file specified, reading from stdin.")
+	// 	if !isjsonl {
+	// 		log.Fatalln("Only JSONL files can be read from stdin.")
+	// 	}
+	// 	source := "__stdin"
+	// 	processfile(source, schema, w, hostname, isjsonl)
+	// } else {
+	// 	// else if files specified, read from files
 	for i := 0; i < flag.NArg(); i++ {
 		source := flag.Arg(i)
 		processfile(source, schema, w, hostname, isjsonl)
 	}
+	// }
 
 	// read in inputs from text file if specified
 	if inputslist != "" {
