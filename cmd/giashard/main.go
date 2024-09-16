@@ -56,20 +56,17 @@ type Reader interface {
 	Close() error
 }
 
-func NewReader(source string, schema []string, isjsonl bool) (Reader, error) {
-	var r Reader
-	var err error
-
+func NewReader(source string, schema []string, isjsonl bool) (r Reader, err error) {
 	if isjsonl {
 		r, err = giashard.NewJsonlReader(source)
 		if err != nil {
-			return r, err
+			return
 		}
 		log.Println("Using JSONL reader")
 	} else {
 		r, err = giashard.NewColumnReader(source, schema...)
 		if err != nil {
-			return r, err
+			return
 		}
 		log.Println("Using Column reader")
 	}
@@ -141,21 +138,11 @@ func main() {
 		log.Fatalf("Error getting local hostname: %v", err)
 	}
 
-	// // read in from stdin if no files specified...
-	// if flag.NArg() < 1 {
-	// 	log.Printf("No file specified, reading from stdin.")
-	// 	if !isjsonl {
-	// 		log.Fatalln("Only JSONL files can be read from stdin.")
-	// 	}
-	// 	source := "__stdin"
-	// 	processfile(source, schema, w, hostname, isjsonl)
-	// } else {
-	// 	// else if files specified, read from files
+	// process files given as arguments
 	for i := 0; i < flag.NArg(); i++ {
 		source := flag.Arg(i)
 		processfile(source, schema, w, hostname, isjsonl)
 	}
-	// }
 
 	// read in inputs from text file if specified
 	if inputslist != "" {
