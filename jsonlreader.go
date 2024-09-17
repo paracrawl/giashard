@@ -25,15 +25,26 @@ type JsonlReader struct {
 }
 
 func NewJsonlReader(filename string) (r *JsonlReader, err error) {
-	f, err := os.Open(filename)
-	if err != nil {
-		return
+	var f *os.File
+	var z io.ReadCloser
+	var d *zstd.Decoder
+
+	// deal with reading from stdin
+	if filename == "-" {
+		log.Println("Reading from stdin")
+		f = os.Stdin
+		z = f // horrible hack
+	} else {
+		f, err = os.Open(filename)
+		if err != nil {
+			return
+		}
+		d, err = zstd.NewReader(f)
+		if err != nil {
+			return
+		}
+		z = d.IOReadCloser() // to match LineReader
 	}
-	d, err := zstd.NewReader(f)
-	if err != nil {
-		return
-	}
-	z := d.IOReadCloser() // to match LineReader
 	r = &JsonlReader{f, z, true}
 	return
 }
@@ -48,8 +59,11 @@ func (r *JsonlReader) Close() (err error) {
 	if e := r.z.Close(); e != nil {
 		err = e
 	}
-	if e := r.f.Close(); e != nil {
-		err = e
+	// if input is stdin, file is already closed
+	if r.f != os.Stdin {
+		if e := r.f.Close(); e != nil {
+			err = e
+		}
 	}
 	return
 }

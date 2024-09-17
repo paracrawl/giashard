@@ -13,9 +13,10 @@ go build
 ```
 
 ## Running `giashard`
-`giashard` can accept two input formats:
+`giashard` can accept three input formats:
 1) A directory (or list of directories) in bitextor/Paracrawl column storage format: each directory contains three files named `url.gz`, `mime.gz` and `plain_text.gz` (by default). A different number of files and different names for these files can be specified with the `-f` flag
-2) A file (or list of files) in the JSONL format where each record contains at minimum one field named `u` containing a URL and one field named `text` containing the extracted content in plain text.
+2) A zstd-compressed file (or list of files) in the JSONL format where each record contains at minimum one field named `u` containing a URL and one field named `text` containing the extracted content in plain text.
+3) An uncompressed stream to stdin in the above JSONL format (indicated by `-` as the input file: e.g. `cat myfile.jsonl | giashard -o myoutput -`)
 
 `giashard` uses the following flags:
 - `-o`: Output directory location (default: current directory)
