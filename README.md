@@ -41,7 +41,7 @@ This runs `giashard` on all Icelandic data in the `output_wide15_filtered` direc
 cat icelandic.jsonl | giashard -o output -jsonl -
 ```
 
-This runs giashard on JSONL file `icelandic.jsonl` which is in the format described above. It writes the resulting shards to the `output` directory. Note the trailing `-` to indicate reading from stdin.
+This runs giashard on JSONL file `icelandic.jsonl` which is in the format described above. It writes the resulting shards to the `output` directory. Note the trailing `-` to indicate reading from stdin. Other parameters are set to their default values.
 
 
 ## `giashardid`
