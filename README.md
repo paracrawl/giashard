@@ -27,12 +27,21 @@ go build
 - `-d`: Additional public suffix entries (default: "")
 - `-jsonl`: Boolean indicating data is in JSONL format (default: False)
 
-Example command:
+### `giashard` examples
+
+#### Example command for Paracrawl column format:
 ```bash
 ls -1d output_wide15_filtered/*/is | xargs giashard/cmd/giashard/giashard -n 8 -o output_wide15_sharded -f text,url -b 1024
 ```
 
 This runs `giashard` on all Icelandic data in the `output_wide15_filtered` directory (in bitextor/Paracrawl column storage format) where each input directory contains two files: `text.gz` and `url.gz`. It sorts this data into 2^8 numbered shards where shard membership is assigned based on a hash of the URL. The data in each shard is split into numbered batches of approximately 1024MB. Output text is base64 encoded.
+
+#### Example command for reading JSONL from stdin:
+```bash
+cat icelandic.jsonl | giashard -o output -jsonl -
+```
+
+This runs giashard on JSONL file `icelandic.jsonl` which is in the format described above. It writes the resulting shards to the `output` directory. Note the trailing `-` to indicate reading from stdin.
 
 
 ## `giashardid`
