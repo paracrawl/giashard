@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+  "strconv"
 
 	"github.com/klauspost/compress/zstd"
 )
@@ -14,6 +15,8 @@ import (
 type JsonlRecord struct {
 	Url  string `json:"u"`
 	Text string `json:"text"`
+	File string `json:"f"`
+  Offset int `json:"o"`
 }
 
 // support reading a zstandard-zipped JSONL file and sending lines to channel (from giashard/LineReader)
@@ -111,6 +114,7 @@ func (r *JsonlReader) Rows() (ch chan map[string][]byte) {
 
 			m["url"] = []byte(v.Url)
 			m["text"] = enc
+			m["docid"] = []byte(v.File + ":" + strconv.Itoa(v.Offset))
 			ch <- m
 		}
 	}()

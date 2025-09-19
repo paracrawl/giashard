@@ -109,7 +109,7 @@ func main() {
 	flag.Parse()
 	schema = strings.Split(fileslist, ",")
 	if isjsonl {
-		schema = []string{"url", "text"} // need a fixed schema for jsonl
+		schema = []string{"url", "text", "docid"} // need a fixed schema for jsonl
 	}
 
 	// these are extra top-level domains to pick up e.g. '.com', '.co.uk'
