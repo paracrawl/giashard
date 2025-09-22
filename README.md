@@ -21,7 +21,7 @@ go build
 `giashard` uses the following flags:
 - `-o`: Output directory location (default: current directory)
 - `-l`: Input file containing a list of files/directories to shard (default: "")
-- `-f`: Comma-separated list of files to shard for bitextor/Paracrawl column storage format input (default:`"url,mime,plaintext"`)
+- `-f`: Comma-separated list of files to shard for bitextor/Paracrawl column storage format input (default:`"url,mime,plaintext"`). For `jsonl` input this is fixed to `"docid,text,url`".
 - `-n`: Exponent to calculate number of shards (2^n) (default: 8)
 - `-b`: Batch size in MB (default: 100)
 - `-d`: Additional public suffix entries (default: "")
