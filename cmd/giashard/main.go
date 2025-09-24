@@ -38,8 +38,7 @@ func init() {
 		flag.PrintDefaults()
 		_, err = fmt.Fprintf(flag.CommandLine.Output(),
 			`Shards together the files given on input. They are assumed to be either in the standard 
-			Paracrawl column storage format, or in JSONL format with the data to shard given the names 
-			"url" and "text" in each record. 
+			Paracrawl column storage format, or in the JSONL format used by HPLT monolingual releases.
 			The output is a tree of directories of the form: outdir/shard/batch where shard is 
 			computed as a hash of the significant part of the hostname in a url and batch is 
 			approximately fixed size.
@@ -109,7 +108,7 @@ func main() {
 	flag.Parse()
 	schema = strings.Split(fileslist, ",")
 	if isjsonl {
-		schema = []string{"url", "text"} // need a fixed schema for jsonl
+		schema = []string{"url", "text", "id"} // need a fixed schema for jsonl
 	}
 
 	// these are extra top-level domains to pick up e.g. '.com', '.co.uk'

@@ -15,13 +15,13 @@ go build
 ## Running `giashard`
 `giashard` can accept three input formats:
 1) A directory (or list of directories) in bitextor/Paracrawl column storage format: each directory contains three files named `url.gz`, `mime.gz` and `plain_text.gz` (by default). A different number of files and different names for these files can be specified with the `-f` flag
-2) A zstd-compressed file (or list of files) in the JSONL format where each record contains at minimum one field named `u` containing a URL and one field named `text` containing the extracted content in plain text.
+2) A zstd-compressed file (or list of files) in the JSONL format where each record contains at minimum `u` (the url), `text` (the text) and `id` (a unique id).
 3) An uncompressed stream to stdin in the above JSONL format (indicated by `-` as the input file: e.g. `cat myfile.jsonl | giashard -o myoutput -`)
 
 `giashard` uses the following flags:
 - `-o`: Output directory location (default: current directory)
 - `-l`: Input file containing a list of files/directories to shard (default: "")
-- `-f`: Comma-separated list of files to shard for bitextor/Paracrawl column storage format input (default:`"url,mime,plaintext"`)
+- `-f`: Comma-separated list of files to shard for bitextor/Paracrawl column storage format input (default:`"url,mime,plaintext"`). For `jsonl` input this is fixed to `"id,text,url`".
 - `-n`: Exponent to calculate number of shards (2^n) (default: 8)
 - `-b`: Batch size in MB (default: 100)
 - `-d`: Additional public suffix entries (default: "")
